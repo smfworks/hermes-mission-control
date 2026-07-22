@@ -275,6 +275,150 @@ export function generateSystemState(): SystemState {
 let store: SystemState | null = null;
 
 /**
+ * Simple event emitter for real-time updates.
+ */
+type EventListener = (state: SystemState) => void;
+const listeners: Set<EventListener> = new Set();
+
+/**
+ * Subscribe to system state changes.
+ */
+export function subscribeToState(listener: EventListener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/**
+ * Broadcast state change to all listeners.
+ */
+function broadcastChange(): void {
+  if (store) {
+    listeners.forEach((listener) => listener(store!));
+  }
+}
+
+/**
+ * Inject a new goal into the system.
+ * This simulates a human operator injecting a new task.
+ */
+export function injectGoal(goal: string): SystemEvent {
+  if (!store) {
+    store = generateSystemState();
+  }
+
+  const event: SystemEvent = {
+    id: uuidv4(),
+    timestamp: new Date().toISOString(),
+    type: "goal_injected",
+    agentId: null,
+    skillId: null,
+    taskId: null,
+    message: `New goal injected: ${goal}`,
+    details: { goal },
+  };
+
+  // Add event to the feed
+  store.events.unshift(event);
+  if (store.events.length > 100) {
+    store.events.pop();
+  }
+
+  // Create a new task from the goal
+  const newTask: Task = {
+    id: uuidv4(),
+    title: goal,
+    description: `Task generated from injected goal: ${goal}`,
+    status: "pending",
+    assignedAgent: null,
+    result: null,
+    createdAt: new Date().toISOString(),
+    completedAt: null,
+  };
+
+  store.tasks.unshift(newTask);
+
+  // Update metrics
+  store.metrics.totalEvents = store.events.length;
+
+  broadcastChange();
+  return event;
+}
+
+/**
+ * Simulate real-time agent activity.
+ * This generates random events to simulate agents working.
+ */
+export function simulateActivity(): void {
+  if (!store) {
+    store = generateSystemState();
+  }
+
+  const agents = store.agents;
+  const skills = store.skills;
+  const tasks = store.tasks;
+
+  // Pick a random agent to do something
+  const agent = agents[Math.floor(Math.random() * agents.length)];
+  const eventTypes: SystemEvent["type"][] = [
+    "agent_started", "agent_completed", "tool_called",
+  ];
+  const type = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+
+  // Update agent status
+  const statuses: Agent["status"][] = ["thinking", "tool_calling", "success", "idle"];
+  agent.status = statuses[Math.floor(Math.random() * statuses.length)];
+  agent.lastActive = new Date().toISOString();
+
+  const event: SystemEvent = {
+    id: uuidv4(),
+    timestamp: new Date().toISOString(),
+    type,
+    agentId: agent.id,
+    skillId: null,
+    taskId: tasks[Math.floor(Math.random() * tasks.length)].id,
+    message: `Agent ${agent.name} ${type.replace("_", " ")}`,
+    details: {
+      duration: Math.floor(Math.random() * 5000),
+      success: Math.random() > 0.2,
+    },
+  };
+
+  store.events.unshift(event);
+  if (store.events.length > 100) {
+    store.events.pop();
+  }
+
+  // Update metrics
+  store.metrics.activeAgents = agents.filter(
+    (a) => a.status !== "idle" && a.status !== "failed"
+  ).length;
+  store.metrics.totalEvents = store.events.length;
+
+  broadcastChange();
+}
+
+/**
+ * Start the activity simulation interval.
+ */
+let activityInterval: NodeJS.Timeout | null = null;
+
+export function startActivitySimulation(intervalMs: number = 3000): void {
+  if (activityInterval) {
+    clearInterval(activityInterval);
+  }
+  activityInterval = setInterval(simulateActivity, intervalMs);
+}
+
+export function stopActivitySimulation(): void {
+  if (activityInterval) {
+    clearInterval(activityInterval);
+    activityInterval = null;
+  }
+}
+
+/**
  * Get the current system state (singleton).
  */
 export function getSystemState(): SystemState {

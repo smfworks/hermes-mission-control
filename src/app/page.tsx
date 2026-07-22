@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -11,8 +11,10 @@ import {
   Search,
   Settings,
   Users,
+  Send,
+  Filter,
 } from "lucide-react";
-import type { SystemState } from "@/lib/types";
+import type { SystemState, SystemEvent, SystemEventType } from "@/lib/types";
 import { getSystemState } from "@/lib/mock-data";
 import AgentGraph from "@/lib/components/AgentGraph";
 import SkillTimeline from "@/lib/components/SkillTimeline";
@@ -20,12 +22,64 @@ import SkillTimeline from "@/lib/components/SkillTimeline";
 export default function Home() {
   const [state, setState] = useState<SystemState | null>(null);
   const [loading, setLoading] = useState(true);
+  const [eventFilter, setEventFilter] = useState<SystemEventType | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [goalInput, setGoalInput] = useState("");
+  const [injecting, setInjecting] = useState(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
+  // Initialize state and set up SSE connection
   useEffect(() => {
     const data = getSystemState();
     setState(data);
     setLoading(false);
+
+    // Connect to SSE
+    const es = new EventSource("/api/events/stream");
+    eventSourceRef.current = es;
+
+    es.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.type === "update" && msg.data) {
+        setState(msg.data);
+      }
+    };
+
+    es.onerror = (err) => {
+      console.error("SSE error:", err);
+    };
+
+    return () => {
+      es.close();
+    };
   }, []);
+
+  // Filter events
+  const filteredEvents = state?.events.filter((event) => {
+    const matchesFilter = eventFilter === "all" || event.type === eventFilter;
+    const matchesSearch =
+      searchQuery === "" ||
+      event.message.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  }) || [];
+
+  // Handle goal injection
+  const handleInjectGoal = async () => {
+    if (!goalInput.trim()) return;
+    setInjecting(true);
+    try {
+      await fetch("/api/goals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal: goalInput }),
+      });
+      setGoalInput("");
+    } catch (error) {
+      console.error("Failed to inject goal:", error);
+    } finally {
+      setInjecting(false);
+    }
+  };
 
   if (loading || !state) {
     return (
@@ -107,6 +161,38 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Goal Injection */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-4">Inject Goal</h2>
+          <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={goalInput}
+                onChange={(e) => setGoalInput(e.target.value)}
+                placeholder="Enter a new goal for the agent system..."
+                className="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onKeyPress={(e) => e.key === "Enter" && handleInjectGoal()}
+              />
+              <button
+                onClick={handleInjectGoal}
+                disabled={injecting || !goalInput.trim()}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 rounded-lg text-sm font-medium text-white flex items-center gap-2 transition-colors"
+              >
+                {injecting ? (
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                Inject
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">
+              Goals are injected as new tasks for agents to pick up.
+            </p>
+          </div>
+        </section>
+
         {/* Live Agent Graph */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-white mb-4">Live Agent Graph</h2>
@@ -125,38 +211,81 @@ export default function Home() {
 
         {/* Activity Feed */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">Activity Feed</h2>
           <div className="bg-slate-900/30 border border-slate-800 rounded-xl">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="font-medium text-white">Event Feed</h3>
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="text"
-                  placeholder="Search events..."
-                  className="pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
+            <div className="p-4 border-b border-slate-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <h3 className="font-medium text-white">Event Feed</h3>
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search events..."
+                      className="pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-slate-400" />
+                  <select
+                    value={eventFilter}
+                    onChange={(e) => setEventFilter(e.target.value as any)}
+                    className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="all">All Events</option>
+                    <option value="agent_started">Agent Started</option>
+                    <option value="agent_completed">Agent Completed</option>
+                    <option value="skill_created">Skill Created</option>
+                    <option value="skill_evolved">Skill Evolved</option>
+                    <option value="task_started">Task Started</option>
+                    <option value="task_completed">Task Completed</option>
+                    <option value="tool_called">Tool Called</option>
+                    <option value="error">Errors</option>
+                    <option value="goal_injected">Goals</option>
+                  </select>
+                </div>
               </div>
             </div>
-            <div className="divide-y divide-slate-800">
-              {state.events.slice(0, 10).map((event) => (
-                <div key={event.id} className="p-4 hover:bg-slate-800/30 transition-colors">
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></div>
-                    <div className="flex-1">
-                      <p className="text-sm text-slate-300">{event.message}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-slate-500">
-                          {new Date(event.timestamp).toLocaleTimeString()}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 bg-slate-800 rounded-full text-slate-400">
-                          {event.type}
-                        </span>
+            <div className="divide-y divide-slate-800 max-h-96 overflow-y-auto">
+              {filteredEvents.length === 0 ? (
+                <div className="p-8 text-center text-slate-500">
+                  <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>No events matching your filter</p>
+                </div>
+              ) : (
+                filteredEvents.map((event) => (
+                  <div key={event.id} className="p-4 hover:bg-slate-800/30 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                        event.type === "error" ? "bg-red-400" :
+                        event.type === "goal_injected" ? "bg-purple-400" :
+                        event.type === "agent_completed" ? "bg-green-400" :
+                        event.type === "skill_evolved" ? "bg-amber-400" :
+                        "bg-blue-400"
+                      }`}></div>
+                      <div className="flex-1">
+                        <p className="text-sm text-slate-300">{event.message}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-slate-500">
+                            {new Date(event.timestamp).toLocaleTimeString()}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 bg-slate-800 rounded-full text-slate-400">
+                            {event.type}
+                          </span>
+                          {event.agentId && (
+                            <span className="text-xs text-slate-500">
+                              Agent: {event.agentId.substring(0, 8)}...
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </section>
