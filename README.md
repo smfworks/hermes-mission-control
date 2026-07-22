@@ -1,5 +1,9 @@
 # Hermes Mission Control
 
+<div align="center">
+  <img src="public/logo.png" alt="Hermes Mission Control" width="600" />
+</div>
+
 > Real-time visual command center for Hermes agent systems.
 
 Hermes Mission Control is an open-source observability dashboard that lets you
@@ -27,6 +31,10 @@ inject new goals or instructions from the UI.
 ### System Overview & Metrics
 Clean dashboard cards showing active agents, skills under evolution, tasks in
 progress, success rates, and more.
+
+## Screenshot
+
+![Mission Control Dashboard](public/screenshot.png)
 
 ## Quick Start
 
