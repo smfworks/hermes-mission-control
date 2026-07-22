@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import ReactFlow, {
   Controls,
   Background,
@@ -139,7 +139,9 @@ export default function AgentGraph({ agents, skills, graph }: AgentGraphProps) {
   }, [graph, agents, skills]);
 
   // Auto-layout: position nodes in a circle
-  const onInit = useCallback((instance: any) => {
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    
     const centerX = 400;
     const centerY = 300;
     const radius = 200;
@@ -157,7 +159,7 @@ export default function AgentGraph({ agents, skills, graph }: AgentGraphProps) {
     });
 
     setNodes(updatedNodes);
-  }, [nodes]);
+  }, [graph, agents, skills]);
 
   return (
     <div className="h-96 w-full bg-slate-900/30 border border-slate-800 rounded-xl">
@@ -166,7 +168,6 @@ export default function AgentGraph({ agents, skills, graph }: AgentGraphProps) {
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onInit={onInit}
         connectionLineStyle={{ stroke: "#555", strokeWidth: 2 }}
         connectionLineType={ConnectionLineType.SmoothStep}
         fitView
