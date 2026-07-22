@@ -10,6 +10,8 @@ import ReactFlow, {
   NodeTypes,
   EdgeTypes,
   ConnectionLineType,
+  Handle,
+  Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import type { GraphNode, GraphEdge, Agent, Skill } from "@/lib/types";
@@ -38,6 +40,8 @@ function AgentNode({ data }: { data: { label: string; status: string; type: stri
 
   return (
     <div className={`bg-slate-800 border-2 ${borderColor} rounded-xl p-3 min-w-[120px] text-center`}>
+      <Handle type="target" position={Position.Top} />
+      <Handle type="source" position={Position.Bottom} />
       <div className="flex items-center justify-center mb-1">
         <Icon className="w-4 h-4 text-blue-400" />
       </div>
@@ -60,6 +64,8 @@ function SkillNode({ data }: { data: { label: string; status: string; descriptio
 
   return (
     <div className={`bg-slate-800 border-2 ${borderColor} rounded-xl p-3 min-w-[120px] text-center`}>
+      <Handle type="target" position={Position.Top} />
+      <Handle type="source" position={Position.Bottom} />
       <div className="flex items-center justify-center mb-1">
         <Code className="w-4 h-4 text-purple-400" />
       </div>
@@ -105,7 +111,14 @@ export default function AgentGraph({ agents, skills, graph }: AgentGraphProps) {
       };
     });
 
-    const rfEdges: Edge[] = graph.edges.map((edge) => ({
+    const rfEdges: Edge[] = graph.edges
+      .filter((edge) => {
+        // Only include edges where both source and target nodes exist
+        const sourceExists = rfNodes.some((n) => n.id === edge.source);
+        const targetExists = rfNodes.some((n) => n.id === edge.target);
+        return sourceExists && targetExists;
+      })
+      .map((edge) => ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
