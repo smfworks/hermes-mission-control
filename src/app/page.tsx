@@ -7,7 +7,6 @@ import {
   Bot,
   Code,
   Database,
-  Globe,
   LayoutDashboard,
   Search,
   Settings,
@@ -15,6 +14,8 @@ import {
 } from "lucide-react";
 import type { SystemState } from "@/lib/types";
 import { getSystemState } from "@/lib/mock-data";
+import AgentGraph from "@/lib/components/AgentGraph";
+import SkillTimeline from "@/lib/components/SkillTimeline";
 
 export default function Home() {
   const [state, setState] = useState<SystemState | null>(null);
@@ -109,15 +110,17 @@ export default function Home() {
         {/* Live Agent Graph */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-white mb-4">Live Agent Graph</h2>
-          <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
-            <div className="h-96 flex items-center justify-center text-slate-500">
-              <div className="text-center">
-                <Globe className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Agent graph visualization coming soon</p>
-                <p className="text-sm mt-2">Real-time force-directed graph of agents and skills</p>
-              </div>
-            </div>
-          </div>
+          <AgentGraph
+            agents={state.agents}
+            skills={state.skills}
+            graph={state.graph}
+          />
+        </section>
+
+        {/* Skill Evolution Timeline */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-4">Skill Evolution</h2>
+          <SkillTimeline skills={state.skills} />
         </section>
 
         {/* Activity Feed */}
