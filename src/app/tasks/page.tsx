@@ -20,7 +20,7 @@ export default function TasksPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-cinematic hero-gradient flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
@@ -41,7 +41,7 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-cinematic hero-gradient">
       <header className="border-b border-slate-800 bg-slate-900/50">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -68,7 +68,7 @@ export default function TasksPage() {
           {tasks.map((task) => {
             const Icon = statusIcons[task.status];
             return (
-              <div key={task.id} className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+              <div key={task.id} className="bg-gradient-card border border-slate-800 rounded-xl p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
                     <Icon className={`w-5 h-5 mt-0.5 ${statusColors[task.status]}`} />

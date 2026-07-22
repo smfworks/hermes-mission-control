@@ -83,10 +83,14 @@ export default function Home() {
 
   if (loading || !state) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-cinematic hero-gradient flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading Mission Control...</p>
+          <div className="relative">
+            <div className="animate-spin w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-12 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}></div>
+          </div>
+          <p className="text-slate-400 mt-4">Initializing Mission Control...</p>
+          <p className="text-slate-500 text-sm mt-2">Connecting to agent system</p>
         </div>
       </div>
     );
@@ -95,7 +99,7 @@ export default function Home() {
   const { metrics } = state;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-cinematic hero-gradient">
       {/* Header */}
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -131,9 +135,9 @@ export default function Home() {
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
         {/* System Metrics Cards */}
-        <section className="mb-8">
+        <section className="mb-8 fade-in">
           <h2 className="text-lg font-semibold text-white mb-4">System Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
             <MetricCard
               title="Active Agents"
               value={metrics.activeAgents.toString()}
@@ -162,9 +166,9 @@ export default function Home() {
         </section>
 
         {/* Goal Injection */}
-        <section className="mb-8">
+        <section className="mb-8 fade-in">
           <h2 className="text-lg font-semibold text-white mb-4">Inject Goal</h2>
-          <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+          <div className="bg-gradient-card border border-slate-800 rounded-xl p-6">
             <div className="flex gap-3">
               <input
                 type="text"
@@ -194,7 +198,7 @@ export default function Home() {
         </section>
 
         {/* Live Agent Graph */}
-        <section className="mb-8">
+        <section className="mb-8 fade-in">
           <h2 className="text-lg font-semibold text-white mb-4">Live Agent Graph</h2>
           <AgentGraph
             agents={state.agents}
@@ -204,15 +208,15 @@ export default function Home() {
         </section>
 
         {/* Skill Evolution Timeline */}
-        <section className="mb-8">
+        <section className="mb-8 fade-in">
           <h2 className="text-lg font-semibold text-white mb-4">Skill Evolution</h2>
           <SkillTimeline skills={state.skills} />
         </section>
 
         {/* Activity Feed */}
-        <section className="mb-8">
+        <section className="mb-8 fade-in">
           <h2 className="text-lg font-semibold text-white mb-4">Activity Feed</h2>
-          <div className="bg-slate-900/30 border border-slate-800 rounded-xl">
+          <div className="bg-gradient-card border border-slate-800 rounded-xl">
             <div className="p-4 border-b border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -291,10 +295,10 @@ export default function Home() {
         </section>
 
         {/* Memory Overview */}
-        <section>
+        <section className="fade-in">
           <h2 className="text-lg font-semibold text-white mb-4">Memory Overview</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 stagger">
+            <div className="bg-gradient-card border border-slate-800 rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Database className="w-5 h-5 text-blue-400" />
                 <h3 className="font-medium text-white">Memory Entries</h3>
@@ -302,7 +306,7 @@ export default function Home() {
               <p className="text-3xl font-bold text-white">{metrics.memoryEntries}</p>
               <p className="text-sm text-slate-400 mt-1">Total entries across all agents</p>
             </div>
-            <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+            <div className="bg-gradient-card border border-slate-800 rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Bot className="w-5 h-5 text-purple-400" />
                 <h3 className="font-medium text-white">Total Agents</h3>
@@ -310,7 +314,7 @@ export default function Home() {
               <p className="text-3xl font-bold text-white">{state.agents.length}</p>
               <p className="text-sm text-slate-400 mt-1">Active in the system</p>
             </div>
-            <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+            <div className="bg-gradient-card border border-slate-800 rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Code className="w-5 h-5 text-amber-400" />
                 <h3 className="font-medium text-white">Total Skills</h3>
@@ -341,7 +345,7 @@ function MetricCard({ title, value, icon: Icon, color }: MetricCardProps) {
   };
 
   return (
-    <div className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+    <div className="bg-gradient-card border border-slate-800 rounded-xl p-6 transition-all duration-300 hover:border-slate-700">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
           <Icon className="w-5 h-5" />

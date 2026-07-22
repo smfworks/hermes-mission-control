@@ -20,14 +20,14 @@ export default function SkillsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-cinematic hero-gradient flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-cinematic hero-gradient">
       <header className="border-b border-slate-800 bg-slate-900/50">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -52,7 +52,7 @@ export default function SkillsPage() {
       <main className="container mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {skills.map((skill) => (
-            <div key={skill.id} className="bg-slate-900/30 border border-slate-800 rounded-xl p-6">
+            <div key={skill.id} className="bg-gradient-card border border-slate-800 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <Code className="w-8 h-8 text-purple-400" />
