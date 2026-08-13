@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, Search, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Search, CheckCircle, XCircle, Clock } from "lucide-react";
 import type { Task } from "@/lib/types";
 
 export default function TasksPage() {

@@ -15,13 +15,12 @@ import {
   Filter,
 } from "lucide-react";
 import type { SystemState, SystemEventType } from "@/lib/types";
-import { getSystemState } from "@/lib/mock-data";
 import AgentGraph from "@/lib/components/AgentGraph";
 import SkillTimeline from "@/lib/components/SkillTimeline";
 
 export default function Home() {
-  const [state, setState] = useState<SystemState | null>(() => getSystemState());
-  const [loading] = useState(false);
+  const [state, setState] = useState<SystemState | null>(null);
+  const [loading, setLoading] = useState(true);
   const [eventFilter, setEventFilter] = useState<SystemEventType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [goalInput, setGoalInput] = useState("");
@@ -29,13 +28,25 @@ export default function Home() {
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
+    fetch("/api/state")
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data: SystemState) => setState(data))
+      .finally(() => setLoading(false));
+
     const es = new EventSource("/api/events/stream");
     eventSourceRef.current = es;
 
     es.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === "update" && msg.data) {
-        setState(msg.data);
+      try {
+        const msg = JSON.parse(event.data) as { type?: string; data?: SystemState };
+        if ((msg.type === "update" || msg.type === "init") && msg.data) {
+          setState(msg.data);
+        }
+      } catch {
+        // ignore malformed SSE frames
       }
     };
 

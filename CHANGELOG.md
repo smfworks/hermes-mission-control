@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1] — 2026-08-13
+
+### Fixed
+- Home page no longer seeds a second client-side mock store
+- SSE no longer sends `Access-Control-Allow-Origin: *`
+- Malformed SSE frames no longer throw
+- Unused-import lint warnings
+
 ## [0.2.0] — 2026-08-13
 
 ### Fixed
