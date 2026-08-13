@@ -14,27 +14,21 @@ import {
   Send,
   Filter,
 } from "lucide-react";
-import type { SystemState, SystemEvent, SystemEventType } from "@/lib/types";
+import type { SystemState, SystemEventType } from "@/lib/types";
 import { getSystemState } from "@/lib/mock-data";
 import AgentGraph from "@/lib/components/AgentGraph";
 import SkillTimeline from "@/lib/components/SkillTimeline";
 
 export default function Home() {
-  const [state, setState] = useState<SystemState | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<SystemState | null>(() => getSystemState());
+  const [loading] = useState(false);
   const [eventFilter, setEventFilter] = useState<SystemEventType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [goalInput, setGoalInput] = useState("");
   const [injecting, setInjecting] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  // Initialize state and set up SSE connection
   useEffect(() => {
-    const data = getSystemState();
-    setState(data);
-    setLoading(false);
-
-    // Connect to SSE
     const es = new EventSource("/api/events/stream");
     eventSourceRef.current = es;
 
@@ -236,7 +230,9 @@ export default function Home() {
                   <Filter className="w-4 h-4 text-slate-400" />
                   <select
                     value={eventFilter}
-                    onChange={(e) => setEventFilter(e.target.value as any)}
+                    onChange={(e) =>
+                      setEventFilter(e.target.value as SystemEventType | "all")
+                    }
                     className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="all">All Events</option>

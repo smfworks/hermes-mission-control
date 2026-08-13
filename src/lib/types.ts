@@ -147,7 +147,7 @@ export interface SystemEvent {
   skillId: string | null;
   taskId: string | null;
   message: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }
 
 /**

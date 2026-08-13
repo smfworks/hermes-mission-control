@@ -12,9 +12,9 @@ understand, and gently steer agent swarms in real time.
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Icons:** Lucide React
-- **Graph Visualization:** React Flow (planned for Phase 2)
+- **Graph Visualization:** React Flow v11 (`reactflow`)
 - **Real-time:** Server-Sent Events / polling
-- **Storage:** Local-first (JSON in memory for demo, SQLite for production)
+- **Storage:** In-memory mock store for the demo. There is no SQLite in this release.
 
 ## Architecture
 
@@ -105,4 +105,4 @@ See `src/lib/types.ts` for the complete data model.
 
 - No external dependencies that compromise privacy
 - All data is local-first
-- API routes are read-only (in production, add authentication)
+- Demo API routes are unauthenticated. `POST /api/goals` writes to the in-memory store only. Do not expose this process on a public interface.
