@@ -205,11 +205,7 @@ export default function Home() {
         {/* Live Agent Graph */}
         <section className="mb-8 fade-in">
           <h2 className="text-lg font-semibold text-white mb-4">Live Agent Graph</h2>
-          <AgentGraph
-            agents={state.agents}
-            skills={state.skills}
-            graph={state.graph}
-          />
+          <AgentGraph graph={state.graph} />
         </section>
 
         {/* Skill Evolution Timeline */}

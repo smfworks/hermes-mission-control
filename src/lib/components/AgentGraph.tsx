@@ -14,7 +14,7 @@ import ReactFlow, {
   Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type { GraphNode, GraphEdge, Agent, Skill } from "@/lib/types";
+import type { GraphNode, GraphEdge } from "@/lib/types";
 import { Bot, Code, Users, Database } from "lucide-react";
 
 // Custom node component for agents
@@ -83,8 +83,6 @@ const nodeTypes: NodeTypes = {
 const edgeTypes: EdgeTypes = {};
 
 interface AgentGraphProps {
-  agents: Agent[];
-  skills: Skill[];
   graph: { nodes: GraphNode[]; edges: GraphEdge[] };
 }
 

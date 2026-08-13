@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Hermes Mission Control",
-  description: "Real-time visual command center for Hermes agent systems",
+  description: "Local mock dashboard for a generated Hermes swarm",
 };
 
 export default function RootLayout({
