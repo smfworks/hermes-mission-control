@@ -9,26 +9,42 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20.19"
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
 
-      - name: Start server and test
+      - name: Production smoke
         run: |
-          npm run dev &
-          sleep 10
-          curl -sf http://localhost:3000/ > /dev/null || exit 1
-          curl -sf http://localhost:3000/api/state > /dev/null || exit 1
-          curl -sf http://localhost:3000/api/agents > /dev/null || exit 1
+          npm run start -- --port 3000 &
+          pid=$!
+          trap 'kill $pid || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000/api/state >/dev/null; then
+              curl -sf http://127.0.0.1:3000/ >/dev/null
+              curl -sf http://127.0.0.1:3000/api/agents >/dev/null
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "server did not become ready"
+          exit 1

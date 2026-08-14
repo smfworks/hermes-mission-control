@@ -356,7 +356,6 @@ export function simulateActivity(): void {
   }
 
   const agents = store.agents;
-  const skills = store.skills;
   const tasks = store.tasks;
 
   // Pick a random agent to do something

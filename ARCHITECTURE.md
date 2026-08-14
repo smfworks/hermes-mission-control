@@ -2,9 +2,8 @@
 
 ## Overview
 
-Hermes Mission Control is a real-time visual command center for Hermes agent systems.
-It provides operators with a cinematic, information-rich interface to monitor,
-understand, and gently steer agent swarms in real time.
+Hermes Mission Control is a **local mock** dashboard. It renders generated
+agents, skills, tasks, and events. It is not a live Hermes command center.
 
 ## Tech Stack
 
@@ -12,9 +11,9 @@ understand, and gently steer agent swarms in real time.
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Icons:** Lucide React
-- **Graph Visualization:** React Flow (planned for Phase 2)
+- **Graph Visualization:** React Flow v11 (`reactflow`)
 - **Real-time:** Server-Sent Events / polling
-- **Storage:** Local-first (JSON in memory for demo, SQLite for production)
+- **Storage:** In-memory mock store for the demo. There is no SQLite in this release.
 
 ## Architecture
 
@@ -52,7 +51,7 @@ hermes-mission-control/
 
 ## Data Flow
 
-1. **API Routes** serve data from the mock data store (or real Hermes backend in production)
+1. **API Routes** serve data from the in-memory mock store only.
 2. **Pages** fetch data from API routes on load
 3. **Components** render the data with real-time updates via polling or SSE
 4. **Mock Data Store** generates realistic data for development and demos
@@ -105,4 +104,4 @@ See `src/lib/types.ts` for the complete data model.
 
 - No external dependencies that compromise privacy
 - All data is local-first
-- API routes are read-only (in production, add authentication)
+- Demo API routes are unauthenticated. `POST /api/goals` writes to the in-memory store only. Do not expose this process on a public interface.

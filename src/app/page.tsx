@@ -14,8 +14,7 @@ import {
   Send,
   Filter,
 } from "lucide-react";
-import type { SystemState, SystemEvent, SystemEventType } from "@/lib/types";
-import { getSystemState } from "@/lib/mock-data";
+import type { SystemState, SystemEventType } from "@/lib/types";
 import AgentGraph from "@/lib/components/AgentGraph";
 import SkillTimeline from "@/lib/components/SkillTimeline";
 
@@ -28,20 +27,26 @@ export default function Home() {
   const [injecting, setInjecting] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  // Initialize state and set up SSE connection
   useEffect(() => {
-    const data = getSystemState();
-    setState(data);
-    setLoading(false);
+    fetch("/api/state")
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data: SystemState) => setState(data))
+      .finally(() => setLoading(false));
 
-    // Connect to SSE
     const es = new EventSource("/api/events/stream");
     eventSourceRef.current = es;
 
     es.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === "update" && msg.data) {
-        setState(msg.data);
+      try {
+        const msg = JSON.parse(event.data) as { type?: string; data?: SystemState };
+        if ((msg.type === "update" || msg.type === "init") && msg.data) {
+          setState(msg.data);
+        }
+      } catch {
+        // ignore malformed SSE frames
       }
     };
 
@@ -200,11 +205,7 @@ export default function Home() {
         {/* Live Agent Graph */}
         <section className="mb-8 fade-in">
           <h2 className="text-lg font-semibold text-white mb-4">Live Agent Graph</h2>
-          <AgentGraph
-            agents={state.agents}
-            skills={state.skills}
-            graph={state.graph}
-          />
+          <AgentGraph graph={state.graph} />
         </section>
 
         {/* Skill Evolution Timeline */}
@@ -236,7 +237,9 @@ export default function Home() {
                   <Filter className="w-4 h-4 text-slate-400" />
                   <select
                     value={eventFilter}
-                    onChange={(e) => setEventFilter(e.target.value as any)}
+                    onChange={(e) =>
+                      setEventFilter(e.target.value as SystemEventType | "all")
+                    }
                     className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="all">All Events</option>

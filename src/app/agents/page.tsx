@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, Bot, Search, Filter } from "lucide-react";
+import { Bot, Search } from "lucide-react";
 import type { Agent } from "@/lib/types";
 
 export default function AgentsPage() {

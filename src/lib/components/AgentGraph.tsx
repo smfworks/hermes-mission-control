@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import ReactFlow, {
   Controls,
   Background,
@@ -14,8 +14,8 @@ import ReactFlow, {
   Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type { GraphNode, GraphEdge, Agent, Skill } from "@/lib/types";
-import { Bot, Code, Users, Database, GitBranch } from "lucide-react";
+import type { GraphNode, GraphEdge } from "@/lib/types";
+import { Bot, Code, Users, Database } from "lucide-react";
 
 // Custom node component for agents
 function AgentNode({ data }: { data: { label: string; status: string; type: string } }) {
@@ -83,25 +83,25 @@ const nodeTypes: NodeTypes = {
 const edgeTypes: EdgeTypes = {};
 
 interface AgentGraphProps {
-  agents: Agent[];
-  skills: Skill[];
   graph: { nodes: GraphNode[]; edges: GraphEdge[] };
 }
 
-export default function AgentGraph({ agents, skills, graph }: AgentGraphProps) {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+export default function AgentGraph({ graph }: AgentGraphProps) {
+  const { nodes, edges } = useMemo(() => {
+    const centerX = 400;
+    const centerY = 300;
+    const radius = 200;
+    const count = graph.nodes.length || 1;
 
-  useEffect(() => {
-    // Convert graph data to React Flow format
-    const rfNodes: Node[] = graph.nodes.map((node) => {
-      const agent = agents.find((a) => a.id === node.id.replace("agent-", ""));
-      const skill = skills.find((s) => s.id === node.id.replace("skill-", ""));
-
+    const rfNodes: Node[] = graph.nodes.map((node, index) => {
+      const angle = (2 * Math.PI * index) / count;
       return {
         id: node.id,
         type: node.type,
-        position: { x: Math.random() * 400, y: Math.random() * 400 },
+        position: {
+          x: centerX + radius * Math.cos(angle) - 60,
+          y: centerY + radius * Math.sin(angle) - 30,
+        },
         data: {
           label: node.name,
           status: node.status,
@@ -113,53 +113,32 @@ export default function AgentGraph({ agents, skills, graph }: AgentGraphProps) {
 
     const rfEdges: Edge[] = graph.edges
       .filter((edge) => {
-        // Only include edges where both source and target nodes exist
         const sourceExists = rfNodes.some((n) => n.id === edge.source);
         const targetExists = rfNodes.some((n) => n.id === edge.target);
         return sourceExists && targetExists;
       })
       .map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      type: "smoothstep",
-      label: edge.label || "",
-      animated: edge.type === "communication",
-      style: {
-        stroke: edge.type === "communication" ? "#3b82f6" :
-                edge.type === "tool_use" ? "#f59e0b" :
-                edge.type === "memory_access" ? "#8b5cf6" :
-                "#22c55e",
-        strokeWidth: 2,
-      },
-    }));
-
-    setNodes(rfNodes);
-    setEdges(rfEdges);
-  }, [graph, agents, skills]);
-
-  // Auto-layout: position nodes in a circle
-  useEffect(() => {
-    if (nodes.length === 0) return;
-    
-    const centerX = 400;
-    const centerY = 300;
-    const radius = 200;
-    const nodeCount = nodes.length;
-
-    const updatedNodes = nodes.map((node, index) => {
-      const angle = (2 * Math.PI * index) / nodeCount;
-      return {
-        ...node,
-        position: {
-          x: centerX + radius * Math.cos(angle) - 60,
-          y: centerY + radius * Math.sin(angle) - 30,
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        type: "smoothstep",
+        label: edge.label || "",
+        animated: edge.type === "communication",
+        style: {
+          stroke:
+            edge.type === "communication"
+              ? "#3b82f6"
+              : edge.type === "tool_use"
+                ? "#f59e0b"
+                : edge.type === "memory_access"
+                  ? "#8b5cf6"
+                  : "#22c55e",
+          strokeWidth: 2,
         },
-      };
-    });
+      }));
 
-    setNodes(updatedNodes);
-  }, [graph, agents, skills]);
+    return { nodes: rfNodes, edges: rfEdges };
+  }, [graph]);
 
   return (
     <div className="h-96 w-full bg-slate-900/30 border border-slate-800 rounded-xl">

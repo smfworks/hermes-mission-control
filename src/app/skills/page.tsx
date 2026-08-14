@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Code, Search, GitBranch, ExternalLink } from "lucide-react";
+import { Code, Search, GitBranch } from "lucide-react";
 import type { Skill } from "@/lib/types";
 
 export default function SkillsPage() {
